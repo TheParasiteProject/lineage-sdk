@@ -193,6 +193,7 @@
             17 - Toggle Qs Panel
             18 - Ringer Modes
             19 - Power Menu
+            20 - Go Forward
          This needs to match the enums in
          sdk/src/java/org/lineageos/internal/util/DeviceKeysConstants.java.
     -->
@@ -219,6 +220,7 @@
             17 - Toggle Qs Panel
             18 - Ringer Modes
             19 - Power Menu
+            20 - Go Forward
          This needs to match the enums in
          sdk/src/java/org/lineageos/internal/util/DeviceKeysConstants.java.
     -->
@@ -245,6 +247,7 @@
             17 - Toggle Qs Panel
             18 - Ringer Modes
             19 - Power Menu
+            20 - Go Forward
          This needs to match the enums in
          sdk/src/java/org/lineageos/internal/util/DeviceKeysConstants.java.
     -->
@@ -271,6 +274,7 @@
             17 - Toggle Qs Panel
             18 - Ringer Modes
             19 - Power Menu
+            20 - Go Forward
          This needs to match the enums in
          sdk/src/java/org/lineageos/internal/util/DeviceKeysConstants.java.
     -->
@@ -297,6 +301,7 @@
             17 - Toggle Qs Panel
             18 - Ringer Modes
             19 - Power Menu
+            20 - Go Forward
          This needs to match the enums in
          sdk/src/java/org/lineageos/internal/util/DeviceKeysConstants.java.
     -->
