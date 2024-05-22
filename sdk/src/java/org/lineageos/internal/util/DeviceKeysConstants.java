@@ -61,6 +61,8 @@ public class DeviceKeysConstants {
         }
     }
 
+    public static final int LAST_ACTION = Action.GO_FORWARD;
+
     // Masks for checking presence of hardware keys.
     // Must match values in:
     //   lineage/res/res/values/config.xml
