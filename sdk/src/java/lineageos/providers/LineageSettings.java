@@ -925,19 +925,6 @@ public final class LineageSettings {
                 sBooleanValidator;
 
         /**
-         * Whether to show the clock in the right or left position or show it in the center
-         * 0: show the clock in the right position (LTR)
-         * 1: show the clock in the center
-         * 2: show the clock in the left position (LTR)
-         * default: 0
-         */
-        public static final String STATUS_BAR_CLOCK = "status_bar_clock";
-
-        /** @hide */
-        public static final Validator STATUS_BAR_CLOCK_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 2);
-
-        /**
          * Whether the notification light will be allowed when in zen mode during downtime
          */
         public static final String ZEN_ALLOW_LIGHTS = "allow_lights";
@@ -964,45 +951,6 @@ public final class LineageSettings {
 
         /** @hide */
         public static final Validator ZEN_PRIORITY_VIBRATION_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 2);
-
-        /**
-         * Display style of AM/PM next to clock in status bar
-         * 0: Normal display (Eclair stock)
-         * 1: Small display (Froyo stock)
-         * 2: No display (Gingerbread/ICS stock)
-         * default: 2
-         */
-        public static final String STATUS_BAR_AM_PM = "status_bar_am_pm";
-
-        /** @hide */
-        public static final Validator STATUS_BAR_AM_PM_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 2);
-
-        /**
-         * Display style of the status bar battery information
-         * 0: Display the battery an icon in portrait mode
-         * 1: Display the battery as a circle
-         * 2: Display the battery as plain text
-         * default: 0
-         */
-        public static final String STATUS_BAR_BATTERY_STYLE = "status_bar_battery_style";
-
-        /** @hide */
-        public static final Validator STATUS_BAR_BATTERY_STYLE_VALIDATOR =
-                new InclusiveIntegerRangeValidator(0, 2);
-
-        /**
-         * Status bar battery %
-         * 0: Hide the battery percentage
-         * 1: Display the battery percentage inside the icon
-         * 2: Display the battery percentage next to the icon
-         */
-        public static final String STATUS_BAR_SHOW_BATTERY_PERCENT =
-                "status_bar_show_battery_percent";
-
-        /** @hide */
-        public static final Validator STATUS_BAR_SHOW_BATTERY_PERCENT_VALIDATOR =
                 new InclusiveIntegerRangeValidator(0, 2);
 
         /**
@@ -2118,11 +2066,6 @@ public final class LineageSettings {
             VALIDATORS.put(HIGH_TOUCH_SENSITIVITY_ENABLE,
                     HIGH_TOUCH_SENSITIVITY_ENABLE_VALIDATOR);
             VALIDATORS.put(SYSTEM_PROFILES_ENABLED, SYSTEM_PROFILES_ENABLED_VALIDATOR);
-            VALIDATORS.put(STATUS_BAR_CLOCK, STATUS_BAR_CLOCK_VALIDATOR);
-            VALIDATORS.put(STATUS_BAR_AM_PM, STATUS_BAR_AM_PM_VALIDATOR);
-            VALIDATORS.put(STATUS_BAR_BATTERY_STYLE, STATUS_BAR_BATTERY_STYLE_VALIDATOR);
-            VALIDATORS.put(STATUS_BAR_SHOW_BATTERY_PERCENT,
-                    STATUS_BAR_SHOW_BATTERY_PERCENT_VALIDATOR);
             VALIDATORS.put(INCREASING_RING, INCREASING_RING_VALIDATOR);
             VALIDATORS.put(INCREASING_RING_START_VOLUME,
                     INCREASING_RING_START_VOLUME_VALIDATOR);
