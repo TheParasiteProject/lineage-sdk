@@ -1945,15 +1945,6 @@ public final class LineageSettings {
                 sBooleanValidator;
 
         /**
-         * Whether auto brightness is applied one shot when screen is turned on
-         */
-        public static final String AUTO_BRIGHTNESS_ONE_SHOT = "auto_brightness_one_shot";
-
-        /** @hide */
-        public static final Validator AUTO_BRIGHTNESS_ONE_SHOT_VALIDATOR =
-                sBooleanValidator;
-
-        /**
          * Whether or not to launch default music player when headset is connected
          */
         public static final String HEADSET_CONNECT_PLAYER = "headset_connect_player";
@@ -2185,9 +2176,12 @@ public final class LineageSettings {
                     NOTIFICATION_LIGHT_PULSE_CUSTOM_VALUES_VALIDATOR);
             VALIDATORS.put(NOTIFICATION_LIGHT_COLOR_AUTO,
                     NOTIFICATION_LIGHT_COLOR_AUTO_VALIDATOR);
+<<<<<<< HEAD
             VALIDATORS.put(NOTIFICATION_LIGHT_PULSE_OVERRIDE,
                     NOTIFICATION_LIGHT_PULSE_OVERRIDE_VALIDATOR);
             VALIDATORS.put(AUTO_BRIGHTNESS_ONE_SHOT, AUTO_BRIGHTNESS_ONE_SHOT_VALIDATOR);
+=======
+>>>>>>> parent of 6e7936c0cace (lineage-sdk: Add preference keys for one shot auto-brightness)
             VALIDATORS.put(HEADSET_CONNECT_PLAYER, HEADSET_CONNECT_PLAYER_VALIDATOR);
             VALIDATORS.put(ZEN_ALLOW_LIGHTS, ZEN_ALLOW_LIGHTS_VALIDATOR);
             VALIDATORS.put(ZEN_PRIORITY_ALLOW_LIGHTS, ZEN_PRIORITY_ALLOW_LIGHTS_VALIDATOR);
