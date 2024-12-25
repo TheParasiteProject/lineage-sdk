@@ -134,3 +134,18 @@ java_library {
 
     javac_shard_size: 150,
 }
+
+// Resources only target for use by core
+// ============================================================
+
+java_library {
+    name: "org.lineageos.platform.resources",
+
+    srcs: [
+        // For the generated R.java and Manifest.java
+        ":org.lineageos.platform-res{.aapt.srcjar}",
+    ],
+
+    sdk_version: "core_current",
+    installable: false,
+}
