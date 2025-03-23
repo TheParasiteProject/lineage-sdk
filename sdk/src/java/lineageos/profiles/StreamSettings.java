@@ -10,10 +10,10 @@ import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.io.IOException;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 
 /**
  * The {@link StreamSettings} class allows for creating various {@link android.media.AudioManager}

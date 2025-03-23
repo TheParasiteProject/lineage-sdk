@@ -5,8 +5,6 @@
 
 package lineageos.app;
 
-import java.util.UUID;
-
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.app.NotificationGroup;
@@ -16,6 +14,8 @@ import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.util.Log;
+
+import java.util.UUID;
 
 /**
  * <p>

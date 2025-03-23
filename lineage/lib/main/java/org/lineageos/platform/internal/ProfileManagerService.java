@@ -35,16 +35,16 @@ import android.util.Log;
 
 import com.android.internal.policy.IKeyguardService;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
 import lineageos.app.IProfileManager;
 import lineageos.app.LineageContextConstants;
 import lineageos.app.Profile;
 import lineageos.app.ProfileGroup;
 import lineageos.app.ProfileManager;
 import lineageos.providers.LineageSettings;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.FileReader;

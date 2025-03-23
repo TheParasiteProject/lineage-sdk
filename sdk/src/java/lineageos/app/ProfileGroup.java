@@ -8,22 +8,21 @@ package lineageos.app;
 
 import android.app.Notification;
 import android.app.NotificationGroup;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Parcel;
-import android.os.Parcelable;
 import android.os.ParcelUuid;
+import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.io.IOException;
-import java.util.UUID;
-
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * @hide

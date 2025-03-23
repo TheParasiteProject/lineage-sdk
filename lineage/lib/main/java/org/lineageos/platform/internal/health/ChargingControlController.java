@@ -5,13 +5,13 @@
 
 package org.lineageos.platform.internal.health;
 
-import static org.lineageos.platform.internal.health.Util.getTimeMillisFromSecondOfDay;
-import static org.lineageos.platform.internal.health.Util.msToString;
-
 import static lineageos.health.HealthInterface.MODE_AUTO;
 import static lineageos.health.HealthInterface.MODE_LIMIT;
 import static lineageos.health.HealthInterface.MODE_MANUAL;
 import static lineageos.health.HealthInterface.MODE_NONE;
+
+import static org.lineageos.platform.internal.health.Util.getTimeMillisFromSecondOfDay;
+import static org.lineageos.platform.internal.health.Util.msToString;
 
 import android.app.AlarmManager;
 import android.content.BroadcastReceiver;
@@ -27,12 +27,12 @@ import android.os.ServiceManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 
+import lineageos.providers.LineageSettings;
+
 import org.lineageos.platform.internal.R;
 import org.lineageos.platform.internal.health.ccprovider.ChargingControlProvider;
 import org.lineageos.platform.internal.health.ccprovider.Deadline;
 import org.lineageos.platform.internal.health.ccprovider.Toggle;
-
-import lineageos.providers.LineageSettings;
 
 import vendor.lineage.health.IChargingControl;
 

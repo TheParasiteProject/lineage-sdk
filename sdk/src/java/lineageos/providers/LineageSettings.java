@@ -6,8 +6,6 @@
 
 package lineageos.providers;
 
-import com.android.internal.util.ArrayUtils;
-
 import android.content.ContentResolver;
 import android.content.IContentProvider;
 import android.database.Cursor;
@@ -26,6 +24,8 @@ import android.util.Log;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.util.ArrayUtils;
 
+import lineageos.trust.TrustInterface;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import lineageos.trust.TrustInterface;
 
 /**
  * LineageSettings contains Lineage specific preferences in System, Secure, and Global.

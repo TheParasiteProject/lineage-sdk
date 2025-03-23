@@ -8,9 +8,9 @@ package lineageos.profiles;
 
 import android.content.Context;
 import android.content.Intent;
-import android.provider.Settings;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.provider.Settings;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;

@@ -8,8 +8,6 @@ package org.lineageos.platform.internal.health.ccprovider;
 import static lineageos.health.HealthInterface.MODE_AUTO;
 import static lineageos.health.HealthInterface.MODE_MANUAL;
 
-import static org.lineageos.platform.internal.health.Util.msToString;
-
 import android.content.Context;
 import android.util.Log;
 
