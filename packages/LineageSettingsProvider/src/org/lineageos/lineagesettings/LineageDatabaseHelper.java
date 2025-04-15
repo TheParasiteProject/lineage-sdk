@@ -234,9 +234,6 @@ public class LineageDatabaseHelper extends SQLiteOpenHelper{
         }
 
         if (upgradeVersion < 15) {
-            if (mUserHandle == UserHandle.USER_OWNER) {
-                loadRestrictedNetworkingModeSetting();
-            }
             upgradeVersion = 15;
         }
 
@@ -297,11 +294,6 @@ public class LineageDatabaseHelper extends SQLiteOpenHelper{
         }
 
         if (upgradeVersion < 20) {
-            // Clear Settings.Global.UIDS_ALLOWED_ON_RESTRICTED_NETWORKS
-            if (mUserHandle == UserHandle.USER_SYSTEM) {
-                Settings.Global.putString(mContext.getContentResolver(),
-                        Settings.Global.UIDS_ALLOWED_ON_RESTRICTED_NETWORKS, "");
-            }
             upgradeVersion = 20;
         }
 
@@ -379,7 +371,6 @@ public class LineageDatabaseHelper extends SQLiteOpenHelper{
         // The global table only exists for the 'owner' user
         if (mUserHandle == UserHandle.USER_SYSTEM) {
             loadGlobalSettings(db);
-            loadRestrictedNetworkingModeSetting();
         }
     }
 
@@ -462,11 +453,6 @@ public class LineageDatabaseHelper extends SQLiteOpenHelper{
         } finally {
             if (stmt != null) stmt.close();
         }
-    }
-
-    private void loadRestrictedNetworkingModeSetting() {
-        Settings.Global.putInt(mContext.getContentResolver(),
-                Settings.Global.RESTRICTED_NETWORKING_MODE, 1);
     }
 
     /**
