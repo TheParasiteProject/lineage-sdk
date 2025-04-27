@@ -113,6 +113,10 @@ java_library {
     srcs: [
         ":lineage-library-sources",
     ],
+
+    dxflags: [
+        "--multi-dex",
+    ],
 }
 
 // Full target for use by platform apps
