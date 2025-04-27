@@ -117,6 +117,8 @@ java_library {
     dxflags: [
         "--multi-dex",
     ],
+
+    javac_shard_size: 150,
 }
 
 // Full target for use by platform apps
