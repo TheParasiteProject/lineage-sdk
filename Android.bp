@@ -127,4 +127,10 @@ java_library {
 java_library {
     name: "org.lineageos.platform.internal",
     defaults: ["lineage-sdk-defaults"],
+
+    dxflags: [
+        "--multi-dex",
+    ],
+
+    javac_shard_size: 150,
 }
