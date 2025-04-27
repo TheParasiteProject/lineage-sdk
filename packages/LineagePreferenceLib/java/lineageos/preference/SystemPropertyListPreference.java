@@ -20,7 +20,7 @@ import android.content.Context;
 import android.os.SystemProperties;
 import android.util.AttributeSet;
 
-import com.android.settingslib.development.SystemPropPoker;
+import lineageos.preference.SystemPropPoker;
 
 public class SystemPropertyListPreference extends SelfRemovingListPreference {
 
