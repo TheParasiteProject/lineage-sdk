@@ -36,8 +36,10 @@ import lineageos.preference.R;
 public class CustomSeekBarPreference extends SelfRemovingPreference implements SeekBar.OnSeekBarChangeListener,
         View.OnClickListener, View.OnLongClickListener {
     protected final String TAG = getClass().getName();
-    private static final String SETTINGS_NS = "http://schemas.android.com/apk/res/com.android.settings";
-    protected static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
+    private static final String ATTR_ITV = "interval";
+    private static final String ATTR_MIN = "min";
+    private static final String ATTR_MAX = "max";
+    private static final String ATTR_DEF = "defaultValue";
 
     protected int mInterval = 1;
     protected boolean mShowSign = false;
@@ -74,23 +76,57 @@ public class CustomSeekBarPreference extends SelfRemovingPreference implements S
             a.recycle();
         }
 
-        try {
-            String newInterval = attrs.getAttributeValue(SETTINGS_NS, "interval");
-            if (newInterval != null)
-                mInterval = Integer.parseInt(newInterval);
-        } catch (Exception e) {
-            Log.e(TAG, "Invalid interval value", e);
+        int tempInterval = mInterval;
+        int tempMinValue = mMinValue;
+        int tempMaxValue = mMaxValue;
+        String tempDefaultValueString = null;
+        boolean tempDefaultValueExists = false;
+
+        for (int i = 0; i < attrs.getAttributeCount(); i++) {
+            String attributeName = attrs.getAttributeName(i);
+            String attributeValue = attrs.getAttributeValue(i);
+
+            try {
+                switch (attributeName) {
+                    case ATTR_ITV:
+                        tempInterval = Integer.parseInt(attributeValue);
+                        break;
+                    case ATTR_MIN:
+                        tempMinValue = Integer.parseInt(attributeValue);
+                        break;
+                    case ATTR_MAX:
+                        tempMaxValue = Integer.parseInt(attributeValue);
+                        break;
+                    case ATTR_DEF:
+                        tempDefaultValueString = attributeValue;
+                        tempDefaultValueExists = (attributeValue != null && !attributeValue.isEmpty());
+                        break;
+                }
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid value for attribute '" + attributeName + "': " + attributeValue, e);
+            }
         }
-        mMinValue = attrs.getAttributeIntValue(SETTINGS_NS, "min", mMinValue);
-        mMaxValue = attrs.getAttributeIntValue(ANDROIDNS, "max", mMaxValue);
-        if (mMaxValue < mMinValue)
+
+        mInterval = tempInterval;
+        mMinValue = tempMinValue;
+        mMaxValue = tempMaxValue;
+
+        if (mMaxValue < mMinValue) {
             mMaxValue = mMinValue;
-        String defaultValue = attrs.getAttributeValue(ANDROIDNS, "defaultValue");
-        mDefaultValueExists = defaultValue != null && !defaultValue.isEmpty();
-        if (mDefaultValueExists) {
-            mDefaultValue = getLimitedValue(Integer.parseInt(defaultValue));
-            mValue = mDefaultValue;
-        } else {
+        }
+
+        mDefaultValueExists = tempDefaultValueExists;
+        if (mDefaultValueExists && tempDefaultValueString != null) {
+            try {
+                mDefaultValue = getLimitedValue(Integer.parseInt(tempDefaultValueString));
+                mValue = mDefaultValue;
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid defaultValue: " + tempDefaultValueString, e);
+                mDefaultValueExists = false;
+            }
+        }
+
+        if (!mDefaultValueExists) {
             mValue = mMinValue;
         }
 
