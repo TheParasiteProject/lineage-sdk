@@ -25,6 +25,7 @@ import android.content.om.OverlayManagerTransaction;
 import android.content.om.OverlayIdentifier;
 import android.content.om.OverlayInfo;
 import android.content.res.Configuration;
+import android.content.res.TypedArray;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.UserHandle;
@@ -34,12 +35,11 @@ import android.util.Log;
 import java.lang.SecurityException;
 import java.util.List;
 
+import lineageos.preference.R;
+
 public class OverlaySwitchPreference extends SelfRemovingSwitchPreference {
 
     private final static String TAG = "OverlaySwitchPreference";
-    private final static String SETTINGSNS = "http://schemas.android.com/apk/res-auto";
-    private static final String DKEY = "dkey";
-    private static final String DKEY_NIGHT_ONLY = "dkeyNightOnly";
 
     private final String mDisableKey;
     private final boolean mDKeyNightOnly;
@@ -47,15 +47,25 @@ public class OverlaySwitchPreference extends SelfRemovingSwitchPreference {
 
     public OverlaySwitchPreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        mDisableKey = attrs.getAttributeValue(SETTINGSNS, DKEY);
-        mDKeyNightOnly = attrs.getAttributeBooleanValue(SETTINGSNS, DKEY_NIGHT_ONLY, false);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.OverlaySwitchPreference);
+        try {
+            mDisableKey = a.getString(R.styleable.OverlaySwitchPreference_dkey);
+            mDKeyNightOnly = a.getBoolean(R.styleable.OverlaySwitchPreference_dkeyNightOnly, false);
+        } finally {
+            a.recycle();
+        }
         mOverlayManager = context.getSystemService(OverlayManager.class);
     }
 
     public OverlaySwitchPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mDisableKey = attrs.getAttributeValue(SETTINGSNS, DKEY);
-        mDKeyNightOnly = attrs.getAttributeBooleanValue(SETTINGSNS, DKEY_NIGHT_ONLY, false);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.OverlaySwitchPreference);
+        try {
+            mDisableKey = a.getString(R.styleable.OverlaySwitchPreference_dkey);
+            mDKeyNightOnly = a.getBoolean(R.styleable.OverlaySwitchPreference_dkeyNightOnly, false);
+        } finally {
+            a.recycle();
+        }
         mOverlayManager = context.getSystemService(OverlayManager.class);
     }
 
@@ -72,7 +82,12 @@ public class OverlaySwitchPreference extends SelfRemovingSwitchPreference {
     protected boolean getBoolean(String key, boolean defaultValue) {
         if (mOverlayManager == null) return false;
         OverlayInfo info = null;
-        info = mOverlayManager.getOverlayInfo(getOverlayID(getKey()), CURRENT);
+        try {
+            info = mOverlayManager.getOverlayInfo(getOverlayID(getKey()), CURRENT);
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Failed to get overlay info for key: " + getKey(), e);
+            return false;
+        }
         if (info != null) return info.isEnabled();
         return false;
     }
@@ -81,20 +96,20 @@ public class OverlaySwitchPreference extends SelfRemovingSwitchPreference {
     protected void putBoolean(String key, boolean value) {
         if (mOverlayManager == null) return;
         OverlayManagerTransaction.Builder transaction = new OverlayManagerTransaction.Builder();
-        transaction.setEnabled(getOverlayID(getKey()), value, USER_CURRENT);
-        if (mDisableKey != null && !mDisableKey.isEmpty()) {
-            if (mDKeyNightOnly) {
-                final boolean isNight = (getContext().getResources().getConfiguration().uiMode
-                    & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-                if (isNight)
+        try { 
+            transaction.setEnabled(getOverlayID(getKey()), value, USER_CURRENT);
+            if (mDisableKey != null && !mDisableKey.isEmpty()) {
+                if (mDKeyNightOnly) {
+                    final boolean isNight = (getContext().getResources().getConfiguration().uiMode
+                        & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+                    if (isNight)
+                        transaction.setEnabled(getOverlayID(mDisableKey), !value, USER_CURRENT);
+                    else // always enabled in day
+                        transaction.setEnabled(getOverlayID(mDisableKey), true, USER_CURRENT);
+                } else {
                     transaction.setEnabled(getOverlayID(mDisableKey), !value, USER_CURRENT);
-                else // always enabled in day
-                    transaction.setEnabled(getOverlayID(mDisableKey), true, USER_CURRENT);
-            } else {
-                transaction.setEnabled(getOverlayID(mDisableKey), !value, USER_CURRENT);
+                }
             }
-        }
-        try {
             mOverlayManager.commit(transaction.build());
         } catch (SecurityException | IllegalStateException e) {
             Log.e(TAG, "Failed setting overlay(s), future logs will point the reason");
@@ -104,10 +119,15 @@ public class OverlaySwitchPreference extends SelfRemovingSwitchPreference {
     }
 
     private OverlayIdentifier getOverlayID(String name) throws IllegalStateException {
-        if (mOverlayManager == null) return null;
+        if (mOverlayManager == null) {
+            throw new IllegalStateException("OverlayManager is null");
+        }
         if (name.contains(":")) {
             // specific overlay name in a package
             final String[] value = name.split(":");
+            if (value.length != 2) {
+                throw new IllegalStateException("Malformed overlay name: " + name + ". Expected 'package:overlayName'");
+            }
             final String pkgName = value[0];
             final String overlayName = value[1];
             final List<OverlayInfo> infos =
@@ -119,6 +139,10 @@ public class OverlaySwitchPreference extends SelfRemovingSwitchPreference {
             throw new IllegalStateException("No overlay found for " + name);
         }
         // package with only one overlay
-        return mOverlayManager.getOverlayInfo(name, CURRENT).getOverlayIdentifier();
+        OverlayInfo info = mOverlayManager.getOverlayInfo(name, CURRENT);
+        if (info == null) {
+            throw new IllegalStateException("No overlay info found for package: " + name);
+        }
+        return info.getOverlayIdentifier();
     }
 }
