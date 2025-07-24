@@ -56,7 +56,6 @@ public class ColorPickerPreference extends SelfRemovingPreference implements
     private boolean mAlphaSliderEnabled = false;
 
     // if we return -6, button is not enabled
-    static final String SETTINGS_NS = "http://schemas.android.com/apk/res/com.android.settings";
     static final int DEF_VALUE_DEFAULT = -6;
     boolean mUsesDefaultButton = false;
     int mDefValue = -1;
@@ -97,11 +96,17 @@ public class ColorPickerPreference extends SelfRemovingPreference implements
         mDensity = getContext().getResources().getDisplayMetrics().density;
         setOnPreferenceClickListener(this);
         if (attrs != null) {
-            mAlphaSliderEnabled = attrs.getAttributeBooleanValue(null, "alphaSlider", false);
-            int defVal = attrs.getAttributeIntValue(SETTINGS_NS, "defaultColorValue", DEF_VALUE_DEFAULT);
-            if (defVal != DEF_VALUE_DEFAULT) {
-                mUsesDefaultButton =  true;
-                mDefValue = defVal;
+            TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.ColorPickerPreference);
+            try {
+                mAlphaSliderEnabled = a.getBoolean(R.styleable.ColorPickerPreference_alphaSlider, false);
+
+                int defVal = a.getInt(R.styleable.ColorPickerPreference_defaultColorValue, DEF_VALUE_DEFAULT);
+                if (defVal != DEF_VALUE_DEFAULT) {
+                    mUsesDefaultButton = true;
+                    mDefValue = defVal;
+                }
+            } finally {
+                a.recycle();
             }
         }
     }
@@ -235,7 +240,6 @@ public class ColorPickerPreference extends SelfRemovingPreference implements
     }
 
     public boolean onPreferenceClick(Preference preference) {
-        //showDialog(null);
         return false;
     }
 
@@ -250,7 +254,7 @@ public class ColorPickerPreference extends SelfRemovingPreference implements
         }
         mDialog.show();
         mDialog.getWindow().setSoftInputMode(
-                android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
 
