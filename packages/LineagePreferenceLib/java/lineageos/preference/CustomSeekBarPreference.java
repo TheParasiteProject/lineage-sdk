@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2016-2017 The Dirty Unicorns Project
+ * Copyright (C) 2016-2025 crDroid Android Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,363 +19,326 @@ package lineageos.preference;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.PorterDuff;
-import androidx.preference.*;
-import androidx.core.content.res.TypedArrayUtils;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.ViewCompat;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceViewHolder;
 
 import lineageos.preference.R;
+import com.android.settingslib.widget.SliderPreference;
 
-public class CustomSeekBarPreference extends SelfRemovingPreference implements SeekBar.OnSeekBarChangeListener,
-        View.OnClickListener, View.OnLongClickListener {
-    protected final String TAG = getClass().getName();
-    private static final String ATTR_ITV = "interval";
-    private static final String ATTR_MIN = "min";
-    private static final String ATTR_MAX = "max";
-    private static final String ATTR_DEF = "defaultValue";
+import com.google.android.material.slider.LabelFormatter;
+import com.google.android.material.slider.Slider;
 
-    protected int mInterval = 1;
-    protected boolean mShowSign = false;
-    protected String mUnits = "";
-    protected boolean mContinuousUpdates = false;
+public class CustomSeekBarPreference extends SliderPreference {
 
-    protected int mMinValue = 0;
-    protected int mMaxValue = 100;
-    protected boolean mDefaultValueExists = false;
-    protected int mDefaultValue;
+    private static final String SETTINGS_NS = "http://schemas.android.com/apk/res/com.android.settings";
+    private static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
 
-    protected int mValue;
+    private boolean mShowSign;
+    @Nullable
+    private String mUnits = "";
+    @Nullable
+    private String mDefaultValueText;
+    private boolean mDefaultValueTextExists;
+    private boolean mDefaultValueExists;
+    private int mDefaultValue;
 
-    protected TextView mValueTextView;
-    protected ImageView mResetImageView;
-    protected ImageView mMinusImageView;
-    protected ImageView mPlusImageView;
-    protected SeekBar mSeekBar;
+    private CharSequence mUserSummary;  
 
-    protected boolean mTrackingTouch = false;
-    protected int mTrackingValue;
-
-    public CustomSeekBarPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CustomSeekBarPreference);
-        try {
-            mShowSign = a.getBoolean(R.styleable.CustomSeekBarPreference_showSign, mShowSign);
-            String units = a.getString(R.styleable.CustomSeekBarPreference_units);
-            if (units != null)
-                mUnits = " " + units;
-            mContinuousUpdates = a.getBoolean(R.styleable.CustomSeekBarPreference_continuousUpdates, mContinuousUpdates);
-        } finally {
-            a.recycle();
-        }
-
-        int tempInterval = mInterval;
-        int tempMinValue = mMinValue;
-        int tempMaxValue = mMaxValue;
-        String tempDefaultValueString = null;
-        boolean tempDefaultValueExists = false;
-
-        for (int i = 0; i < attrs.getAttributeCount(); i++) {
-            String attributeName = attrs.getAttributeName(i);
-            String attributeValue = attrs.getAttributeValue(i);
-
-            try {
-                switch (attributeName) {
-                    case ATTR_ITV:
-                        tempInterval = Integer.parseInt(attributeValue);
-                        break;
-                    case ATTR_MIN:
-                        tempMinValue = Integer.parseInt(attributeValue);
-                        break;
-                    case ATTR_MAX:
-                        tempMaxValue = Integer.parseInt(attributeValue);
-                        break;
-                    case ATTR_DEF:
-                        tempDefaultValueString = attributeValue;
-                        tempDefaultValueExists = (attributeValue != null && !attributeValue.isEmpty());
-                        break;
-                }
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Invalid value for attribute '" + attributeName + "': " + attributeValue, e);
-            }
-        }
-
-        mInterval = tempInterval;
-        mMinValue = tempMinValue;
-        mMaxValue = tempMaxValue;
-
-        if (mMaxValue < mMinValue) {
-            mMaxValue = mMinValue;
-        }
-
-        mDefaultValueExists = tempDefaultValueExists;
-        if (mDefaultValueExists && tempDefaultValueString != null) {
-            try {
-                mDefaultValue = getLimitedValue(Integer.parseInt(tempDefaultValueString));
-                mValue = mDefaultValue;
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Invalid defaultValue: " + tempDefaultValueString, e);
-                mDefaultValueExists = false;
-            }
-        }
-
-        if (!mDefaultValueExists) {
-            mValue = mMinValue;
-        }
-
-        mSeekBar = new SeekBar(context, attrs);
-        setLayoutResource(R.layout.preference_custom_seekbar);
-    }
-
-    public CustomSeekBarPreference(Context context, AttributeSet attrs, int defStyleAttr) {
-        this(context, attrs, defStyleAttr, 0);
-    }
+    private boolean mInUserDrag = false;
 
     public CustomSeekBarPreference(Context context, AttributeSet attrs) {
-        this(context, attrs, TypedArrayUtils.getAttr(context,
-                androidx.preference.R.attr.preferenceStyle,
-                android.R.attr.preferenceStyle));
+        super(context, attrs);
+        readLegacyAttrs(context, attrs);
+        initDefaults();
+        mUserSummary = super.getSummary();
+        updateSummaryNow();
     }
 
     public CustomSeekBarPreference(Context context) {
-        this(context, null);
+        super(context, null);
+        initDefaults();
+        mUserSummary = super.getSummary();
+        updateSummaryNow();
     }
 
-    @Override
-    public void onBindViewHolder(PreferenceViewHolder holder) {
-        super.onBindViewHolder(holder);
-        try
-        {
-            // move our seekbar to the new view we've been given
-            ViewParent oldContainer = mSeekBar.getParent();
-            ViewGroup newContainer = (ViewGroup) holder.findViewById(R.id.seekbar);
-            if (oldContainer != newContainer) {
-                // remove the seekbar from the old view
-                if (oldContainer != null) {
-                    ((ViewGroup) oldContainer).removeView(mSeekBar);
+    private void initDefaults() {
+        setShowSliderValue(true);
+        setHapticFeedbackMode(HAPTIC_FEEDBACK_MODE_ON_TICKS);
+        setLabelFormater(new LabelFormatter() {
+            @Override public String getFormattedValue(float value) {
+                return formatValueForSummary((int) value);
+            }
+        });
+    }
+
+    private void readLegacyAttrs(Context c, AttributeSet attrs) {
+        if (attrs == null) return;
+        final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.CustomSeekBarPreference);
+        try {
+            mShowSign = a.getBoolean(R.styleable.CustomSeekBarPreference_showSign, false);
+            final String units = a.getString(R.styleable.CustomSeekBarPreference_units);
+            if (units != null) mUnits = units;
+
+            final boolean continuous = a.getBoolean(
+                    R.styleable.CustomSeekBarPreference_continuousUpdates, false);
+            setUpdatesContinuously(continuous);
+
+            mDefaultValueText = a.getString(
+                    R.styleable.CustomSeekBarPreference_defaultValueText);
+            mDefaultValueTextExists = mDefaultValueText != null && !mDefaultValueText.isEmpty();
+
+            String defaultValue = attrs.getAttributeValue(ANDROIDNS, "defaultValue");
+            if (defaultValue == null) {
+                defaultValue = attrs.getAttributeValue(SETTINGS_NS, "defaultValue");
+            }
+            if (defaultValue != null && !defaultValue.isEmpty()) {
+                try {
+                    mDefaultValue = Integer.parseInt(defaultValue);
+                    mDefaultValueExists = true;
+                } catch (NumberFormatException ignored) {
+                    mDefaultValueExists = false;
                 }
-                // remove the existing seekbar (there may not be one) and add ours
-                newContainer.removeAllViews();
-                newContainer.addView(mSeekBar, ViewGroup.LayoutParams.FILL_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
             }
-        } catch (Exception ex) {
-            Log.e(TAG, "Error binding view: " + ex.toString());
-        }
 
-        mSeekBar.setMax(getSeekValue(mMaxValue));
-        mSeekBar.setProgress(getSeekValue(mValue));
-        mSeekBar.setEnabled(isEnabled());
-
-        mValueTextView = (TextView) holder.findViewById(R.id.value);
-        mResetImageView = (ImageView) holder.findViewById(R.id.reset);
-        mMinusImageView = (ImageView) holder.findViewById(R.id.minus);
-        mPlusImageView = (ImageView) holder.findViewById(R.id.plus);
-
-        updateValueViews();
-
-        mSeekBar.setOnSeekBarChangeListener(this);
-        mResetImageView.setOnClickListener(this);
-        mMinusImageView.setOnClickListener(this);
-        mPlusImageView.setOnClickListener(this);
-        mResetImageView.setOnLongClickListener(this);
-        mMinusImageView.setOnLongClickListener(this);
-        mPlusImageView.setOnLongClickListener(this);
-    }
-
-    protected int getLimitedValue(int v) {
-        return v < mMinValue ? mMinValue : (v > mMaxValue ? mMaxValue : v);
-    }
-
-    protected int getSeekValue(int v) {
-        return 0 - Math.floorDiv(mMinValue - v, mInterval);
-    }
-
-    protected String getTextValue(int v) {
-        return (mShowSign && v > 0 ? "+" : "") + String.valueOf(v) + mUnits;
-    }
-
-    protected void updateValueViews() {
-        if (mValueTextView != null) {
-            mValueTextView.setText(getContext().getString(R.string.custom_seekbar_value,
-                (!mTrackingTouch || mContinuousUpdates ? getTextValue(mValue) +
-                (mDefaultValueExists && mValue == mDefaultValue ? " (" +
-                getContext().getString(R.string.custom_seekbar_default_value) + ")" : "")
-                    : getTextValue(mTrackingValue))));
-        }
-        if (mResetImageView != null) {
-            if (!mDefaultValueExists || mValue == mDefaultValue || mTrackingTouch)
-                mResetImageView.setVisibility(View.INVISIBLE);
-            else
-                mResetImageView.setVisibility(View.VISIBLE);
-        }
-        if (mMinusImageView != null) {
-            if (mValue == mMinValue || mTrackingTouch) {
-                mMinusImageView.setClickable(false);
-                mMinusImageView.setColorFilter(getContext().getColor(R.color.disabled_text_color),
-                    PorterDuff.Mode.MULTIPLY);
-            } else {
-                mMinusImageView.setClickable(true);
-                mMinusImageView.clearColorFilter();
+            int interval = attrs.getAttributeIntValue(SETTINGS_NS, "interval", 0);
+            if (interval == 0) {
+                interval = attrs.getAttributeIntValue(ANDROIDNS, "interval", 0);
             }
-        }
-        if (mPlusImageView != null) {
-            if (mValue == mMaxValue || mTrackingTouch) {
-                mPlusImageView.setClickable(false);
-                mPlusImageView.setColorFilter(getContext().getColor(R.color.disabled_text_color), PorterDuff.Mode.MULTIPLY);
-            } else {
-                mPlusImageView.setClickable(true);
-                mPlusImageView.clearColorFilter();
-            }
-        }
-    }
-
-    protected void changeValue(int newValue) {
-        // for subclasses
-    }
-
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        int newValue = getLimitedValue(mMinValue + (progress * mInterval));
-        if (mTrackingTouch && !mContinuousUpdates) {
-            mTrackingValue = newValue;
-            updateValueViews();
-        } else if (mValue != newValue) {
-            // change rejected, revert to the previous value
-            if (!callChangeListener(newValue)) {
-                mSeekBar.setProgress(getSeekValue(mValue));
-                return;
-            }
-            // change accepted, store it
-            changeValue(newValue);
-            persistInt(newValue);
-
-            mValue = newValue;
-            updateValueViews();
+            if (interval > 0) setSliderIncrement(interval);
+        } catch (Throwable ignored) {
+            // keep safe defaults
+        } finally {
+            a.recycle();
         }
     }
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-        mTrackingValue = mValue;
-        mTrackingTouch = true;
+    public void setSummary(CharSequence summary) {
+        mUserSummary = summary;
+        updateSummaryNow();
     }
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-        mTrackingTouch = false;
-        if (!mContinuousUpdates)
-            onProgressChanged(mSeekBar, getSeekValue(mTrackingValue), false);
-        notifyChanged();
+    public void setValue(int sliderValue) {
+        super.setValue(sliderValue);
+        if (!mInUserDrag) updateSummaryNow();
     }
 
-    @Override
-    public void onClick(View v) {
-        int id = v.getId();
-        if (id == R.id.reset) {
-            Toast.makeText(getContext(), getContext().getString(R.string.custom_seekbar_default_value_to_set, getTextValue(mDefaultValue)),
-                    Toast.LENGTH_LONG).show();
-        } else if (id == R.id.minus) {
-            setValue(mValue - mInterval, true);
-        } else if (id == R.id.plus) {
-            setValue(mValue + mInterval, true);
+    private void updateSummaryNow() {
+        CharSequence composed = composeSummary(mUserSummary, getValue());
+        super.setSummary(composed);
+    }
+
+    private String formatValueForSummary(int v) {
+        if (mDefaultValueExists && mDefaultValueTextExists && v == mDefaultValue) {
+            return mDefaultValueText;
         }
+        String s = String.valueOf(v);
+        if (mShowSign && v > 0) s = "+" + s;
+        if (mUnits != null && !mUnits.isEmpty()) s = s + " " + mUnits;
+        return s;
     }
 
-    @Override
-    public boolean onLongClick(View v) {
-        int id = v.getId();
-        if (id == R.id.reset) {
-            setValue(mDefaultValue, true);
-            //Toast.makeText(getContext(), getContext().getString(R.string.custom_seekbar_default_value_is_set),
-            //        Toast.LENGTH_LONG).show();
-        } else if (id == R.id.minus) {
-            setValue(mMaxValue - mMinValue > mInterval * 2 && mMaxValue + mMinValue < mValue * 2 ? Math.floorDiv(mMaxValue + mMinValue, 2) : mMinValue, true);
-        } else if (id == R.id.plus) {
-                setValue(mMaxValue - mMinValue > mInterval * 2 && mMaxValue + mMinValue > mValue * 2 ? -1 * Math.floorDiv(-1 * (mMaxValue + mMinValue), 2) : mMaxValue, true);
-        }
-        return true;
-    }
-
-    // dont need too much shit about initial and default values
-    // its all done in constructor already
-
-    @Override
-    protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
-        if (restoreValue)
-            mValue = getPersistedInt(mValue);
+    private CharSequence composeSummary(CharSequence userSummary, int v) {
+        final String valueText = formatValueForSummary(v);
+        if (userSummary == null || userSummary.length() == 0) return valueText;
+        return valueText + " \u2022 " + userSummary;
     }
 
     @Override
     public void setDefaultValue(Object defaultValue) {
-        if (defaultValue instanceof Integer)
-            setDefaultValue((Integer) defaultValue, mSeekBar != null);
-        else
-            setDefaultValue(defaultValue == null ? (String) null : defaultValue.toString(), mSeekBar != null);
-    }
-
-    public void setDefaultValue(int newValue, boolean update) {
-        newValue = getLimitedValue(newValue);
-        if (!mDefaultValueExists || mDefaultValue != newValue) {
+        if (defaultValue instanceof Integer) {
             mDefaultValueExists = true;
-            mDefaultValue = newValue;
-            if (update)
-                updateValueViews();
+            mDefaultValue = (Integer) defaultValue;
+        }
+        super.setDefaultValue(defaultValue);
+        updateSummaryNow();
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull PreferenceViewHolder holder) {
+        super.onBindViewHolder(holder);
+
+        final TextView summaryView = (TextView) holder.findViewById(android.R.id.summary);
+        if (summaryView != null) {
+            summaryView.setText(composeSummary(mUserSummary, getValue()));
+        }
+
+        final View labelFrame = holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.label_frame);
+        final TextView startText = (TextView) holder.findViewById(android.R.id.text1);
+        final TextView endText = (TextView) holder.findViewById(android.R.id.text2);
+
+        if (labelFrame != null) {
+            boolean hasStart = startText != null && startText.getText() != null
+                    && startText.getText().length() > 0;
+            boolean hasEnd = endText != null && endText.getText() != null
+                    && endText.getText().length() > 0;
+            boolean parentWantsLabels = hasStart || hasEnd;
+
+            labelFrame.setVisibility((parentWantsLabels || mDefaultValueExists) ? View.VISIBLE : View.GONE);
+        }
+
+        if (endText != null) {
+            attachResetIcon(endText);
+        }
+
+        ViewGroup minusFrame = (ViewGroup) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_start_frame);
+        ImageView minusIcon = (ImageView) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_start);
+
+        ViewGroup plusFrame = (ViewGroup) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_end_frame);
+        ImageView plusIcon = (ImageView) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_end);
+
+        final Slider slider = (Slider) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.slider);
+
+        if (minusFrame != null && minusIcon != null) {
+            minusFrame.setVisibility(View.VISIBLE);
+            minusIcon.setImageResource(R.drawable.ic_custom_seekbar_minus);
+            minusFrame.setOnClickListener(v -> {
+                if (!isEnabled()) return;
+                int base = slider != null ? Math.round(slider.getValue()) : getValue();
+                int newVal = Math.max(getMin(), base - getSliderIncrement());
+                if (newVal != getValue()) {
+                    setValue(newVal);
+                    updatePlusMinusEnabledStates(holder);
+                }
+            });
+        }
+
+        if (plusFrame != null && plusIcon != null) {
+            plusFrame.setVisibility(View.VISIBLE);
+            plusIcon.setImageResource(R.drawable.ic_custom_seekbar_plus);
+            plusFrame.setOnClickListener(v -> {
+                if (!isEnabled()) return;
+                int base = slider != null ? Math.round(slider.getValue()) : getValue();
+                int newVal = Math.min(getMax(), base + getSliderIncrement());
+                if (newVal != getValue()) {
+                    setValue(newVal);
+                    updatePlusMinusEnabledStates(holder);
+                }
+            });
+        }
+
+        updatePlusMinusEnabledStates(holder);
+
+        if (slider != null && summaryView != null) {
+            slider.addOnChangeListener((s, value, fromUser) -> {
+                if (fromUser) {
+                    summaryView.setText(composeSummary(mUserSummary, (int) value));
+                    updatePlusMinusEnabledStates(holder);
+                }
+            });
+            slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+                @Override
+                public void onStartTrackingTouch(@NonNull Slider s) {
+                    mInUserDrag = true;
+                }
+
+                @Override
+                public void onStopTrackingTouch(@NonNull Slider s) {
+                    mInUserDrag = false;
+                    updateSummaryNow();
+                    updatePlusMinusEnabledStates(holder);
+                }
+            });
         }
     }
 
-    public void setDefaultValue(String newValue, boolean update) {
-        if (mDefaultValueExists && (newValue == null || newValue.isEmpty())) {
-            mDefaultValueExists = false;
-            if (update)
-                updateValueViews();
-        } else if (newValue != null && !newValue.isEmpty()) {
-            setDefaultValue(Integer.parseInt(newValue), update);
+    @Override
+    public void onDependencyChanged(@NonNull Preference dependency, boolean disableDependent) {
+        super.onDependencyChanged(dependency, disableDependent);
+        notifyChanged();
+    }
+
+    private void updatePlusMinusEnabledStates(PreferenceViewHolder holder) {
+        View minusFrame = holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_start_frame);
+        ImageView minusIcon = (ImageView) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_start);
+        View plusFrame = holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_end_frame);
+        ImageView plusIcon = (ImageView) holder.findViewById(
+                com.android.settingslib.widget.preference.slider.R.id.icon_end);
+        boolean enabled = isEnabled();
+        int value = getValue();
+
+        if (minusFrame != null && minusIcon != null) {
+            int min = getMin();
+            minusFrame.setEnabled(enabled && (value > min));
+            minusIcon.setEnabled(enabled && (value > min));
+        }
+        if (plusFrame  != null && plusIcon != null) {
+            int max = getMax();
+            plusFrame.setEnabled(enabled && (value < max));
+            plusIcon.setEnabled(enabled && (value < max));
         }
     }
 
-    public void setMax(int max) {
-        mMaxValue = max;
-        mSeekBar.setMax(mMaxValue - mMinValue);
+    private void attachResetIcon(TextView tv) {
+        if (!mDefaultValueExists) {
+            tv.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, null, null);
+            tv.setOnTouchListener(null);
+            tv.setClickable(false);
+            return;
+        }
+
+        final Drawable icon = ResourcesCompat.getDrawable(
+                tv.getResources(), R.drawable.ic_custom_seekbar_reset, tv.getContext().getTheme());
+        if (icon == null) return;
+
+        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(null, null, icon, null);
+        tv.setCompoundDrawablePadding(dp(tv, 6));
+        tv.setClickable(isEnabled());
+        tv.setFocusable(isEnabled());
+
+        tv.setOnTouchListener((v, ev) -> {
+            if (!isEnabled()) return false;
+
+            if (ev.getAction() != android.view.MotionEvent.ACTION_UP) return false;
+            final boolean isRtl = androidx.core.view.ViewCompat.getLayoutDirection(tv)
+                    == androidx.core.view.ViewCompat.LAYOUT_DIRECTION_RTL;
+            final Drawable[] drs = tv.getCompoundDrawablesRelative();
+            final Drawable end = isRtl ? drs[0] : drs[2];
+            if (end == null) return false;
+
+            final int iconW = end.getIntrinsicWidth();
+            final int x = (int) ev.getX();
+            if (!isRtl) {
+                int left = tv.getWidth() - tv.getPaddingRight() - iconW;
+                if (x >= left) { performReset(); return true; }
+            } else {
+                int right = tv.getPaddingLeft() + iconW;
+                if (x <= right) { performReset(); return true; }
+            }
+            return false;
+        });
     }
 
-    public void setMin(int min) {
-        mMinValue = min;
-        mSeekBar.setMax(mMaxValue - mMinValue);
-    }
-
-    public void setValue(int newValue) {
-        mValue = getLimitedValue(newValue);
-        if (mSeekBar != null) mSeekBar.setProgress(getSeekValue(mValue));
-    }
-
-    public void setValue(int newValue, boolean update) {
-        newValue = getLimitedValue(newValue);
-        if (mValue != newValue) {
-            if (update)
-                mSeekBar.setProgress(getSeekValue(newValue));
-            else
-                mValue = newValue;
+    private void performReset() {
+        if (mDefaultValueExists) {
+            setValue(mDefaultValue);
+            notifyChanged();
         }
     }
 
-    public int getValue() {
-        return mValue;
-    }
-
-    // need some methods here to set/get other attrs at runtime,
-    // but who really need this ...
-
-    public void refresh(int newValue) {
-        // this will ...
-        setValue(newValue, mSeekBar != null);
+    private static int dp(TextView v, int dp) {
+        return Math.round(dp * v.getResources().getDisplayMetrics().density);
     }
 }
