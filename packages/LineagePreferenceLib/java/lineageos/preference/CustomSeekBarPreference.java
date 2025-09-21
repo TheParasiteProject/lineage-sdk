@@ -60,6 +60,14 @@ public class CustomSeekBarPreference extends SliderPreference {
 
     private boolean mInUserDrag = false;
 
+    public CustomSeekBarPreference(Context context, AttributeSet attrs, int defStyle, int defStyleRes) {
+        this(context, attrs);
+    }
+
+    public CustomSeekBarPreference(Context context, AttributeSet attrs, int defStyle) {
+        this(context, attrs);
+    }
+
     public CustomSeekBarPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         mConstraints = new ConstraintsHelper(context, attrs, this);

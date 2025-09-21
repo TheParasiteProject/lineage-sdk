@@ -40,7 +40,7 @@ public class SecureSettingSeekBarPreference extends CustomSeekBarPreference {
     }
 
     public SecureSettingSeekBarPreference(Context context) {
-        super(context, null);
+        super(context);
         setPreferenceDataStore(new DataStore());
     }
 

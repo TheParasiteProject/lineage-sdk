@@ -41,7 +41,7 @@ public class LineageSecureSettingSeekBarPreference extends CustomSeekBarPreferen
     }
 
     public LineageSecureSettingSeekBarPreference(Context context) {
-        super(context, null);
+        super(context);
         setPreferenceDataStore(new DataStore());
     }
 

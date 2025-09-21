@@ -40,7 +40,7 @@ public class SystemSettingSeekBarPreference extends CustomSeekBarPreference {
     }
 
     public SystemSettingSeekBarPreference(Context context) {
-        super(context, null);
+        super(context);
         setPreferenceDataStore(new DataStore());
     }
 

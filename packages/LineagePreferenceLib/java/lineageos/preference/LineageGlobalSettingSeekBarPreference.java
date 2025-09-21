@@ -41,7 +41,7 @@ public class LineageGlobalSettingSeekBarPreference extends CustomSeekBarPreferen
     }
 
     public LineageGlobalSettingSeekBarPreference(Context context) {
-        super(context, null);
+        super(context);
         setPreferenceDataStore(new DataStore());
     }
 
