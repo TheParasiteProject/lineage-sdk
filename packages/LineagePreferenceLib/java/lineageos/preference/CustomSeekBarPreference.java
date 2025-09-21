@@ -45,6 +45,8 @@ public class CustomSeekBarPreference extends SliderPreference {
     private static final String SETTINGS_NS = "http://schemas.android.com/apk/res/com.android.settings";
     private static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
 
+    private final ConstraintsHelper mConstraints;
+
     private boolean mShowSign;
     @Nullable
     private String mUnits = "";
@@ -60,6 +62,7 @@ public class CustomSeekBarPreference extends SliderPreference {
 
     public CustomSeekBarPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mConstraints = new ConstraintsHelper(context, attrs, this);
         readLegacyAttrs(context, attrs);
         initDefaults(mShowSign);
         mUserSummary = super.getSummary();
@@ -68,6 +71,7 @@ public class CustomSeekBarPreference extends SliderPreference {
 
     public CustomSeekBarPreference(Context context) {
         super(context, null);
+        mConstraints = new ConstraintsHelper(context, null, this);
         initDefaults(true);
         mUserSummary = super.getSummary();
         updateSummaryNow();
@@ -139,6 +143,12 @@ public class CustomSeekBarPreference extends SliderPreference {
     }
 
     @Override
+    public void onAttached() {
+        super.onAttached();
+        mConstraints.onAttached();
+    }
+
+    @Override
     public void setSummary(CharSequence summary) {
         mUserSummary = summary;
         updateSummaryNow();
@@ -184,6 +194,7 @@ public class CustomSeekBarPreference extends SliderPreference {
     @Override
     public void onBindViewHolder(@NonNull PreferenceViewHolder holder) {
         super.onBindViewHolder(holder);
+        mConstraints.onBindViewHolder(holder);
 
         final TextView summaryView = (TextView) holder.findViewById(android.R.id.summary);
         if (summaryView != null) {
@@ -373,4 +384,13 @@ public class CustomSeekBarPreference extends SliderPreference {
     private static int dp(TextView v, int dp) {
         return Math.round(dp * v.getResources().getDisplayMetrics().density);
     }
+
+    public void setAvailable(boolean available) {
+        mConstraints.setAvailable(available);
+    }
+
+    public boolean isAvailable() {
+        return mConstraints.isAvailable();
+    }
+
 }
