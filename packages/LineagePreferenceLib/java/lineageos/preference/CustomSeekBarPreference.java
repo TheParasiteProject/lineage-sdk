@@ -61,20 +61,20 @@ public class CustomSeekBarPreference extends SliderPreference {
     public CustomSeekBarPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
         readLegacyAttrs(context, attrs);
-        initDefaults();
+        initDefaults(mShowSign);
         mUserSummary = super.getSummary();
         updateSummaryNow();
     }
 
     public CustomSeekBarPreference(Context context) {
         super(context, null);
-        initDefaults();
+        initDefaults(true);
         mUserSummary = super.getSummary();
         updateSummaryNow();
     }
 
-    private void initDefaults() {
-        setShowSliderValue(true);
+    private void initDefaults(boolean showSign) {
+        setShowSliderValue(showSign);
         setHapticFeedbackMode(HAPTIC_FEEDBACK_MODE_ON_TICKS);
         setLabelFormater(new LabelFormatter() {
             @Override public String getFormattedValue(float value) {
