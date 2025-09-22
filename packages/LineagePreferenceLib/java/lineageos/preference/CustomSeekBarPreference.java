@@ -42,8 +42,7 @@ import com.google.android.material.slider.Slider;
 
 public class CustomSeekBarPreference extends SliderPreference {
 
-    private static final String SETTINGS_NS = "http://schemas.android.com/apk/res/com.android.settings";
-    private static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
+    private static final String AUTONS = "http://schemas.android.com/apk/res-auto";
 
     private final ConstraintsHelper mConstraints;
 
@@ -99,22 +98,33 @@ public class CustomSeekBarPreference extends SliderPreference {
         if (attrs == null) return;
         final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.CustomSeekBarPreference);
         try {
-            mShowSign = a.getBoolean(R.styleable.CustomSeekBarPreference_showSign, false);
-            final String units = a.getString(R.styleable.CustomSeekBarPreference_units);
-            if (units != null) mUnits = units;
+            String showSign = attrs.getAttributeValue(AUTONS, "showSign");
+            if (showSign != null && !showSign.isEmpty()) {
+                try {
+                    mShowSign = Boolean.parseBoolean(showSign);
+                } catch (Exception ignored) {
+                    mShowSign = false;
+                }
+            }
 
-            final boolean continuous = a.getBoolean(
-                    R.styleable.CustomSeekBarPreference_continuousUpdates, false);
-            setUpdatesContinuously(continuous);
+            String units = attrs.getAttributeValue(AUTONS, "units");
+            if (units != null && !units.isEmpty()) {
+                mUnits = units;
+            }
 
-            mDefaultValueText = a.getString(
-                    R.styleable.CustomSeekBarPreference_defaultValueText);
+            String continuous = attrs.getAttributeValue(AUTONS, "continuousUpdates");
+            if (continuous != null && !continuous.isEmpty()) {
+                try {
+                    setUpdatesContinuously(Boolean.parseBoolean(continuous));
+                } catch (Exception ignored) {
+                    setUpdatesContinuously(false);
+                }
+            }
+
+            mDefaultValueText = attrs.getAttributeValue(AUTONS, "defaultValueText");
             mDefaultValueTextExists = mDefaultValueText != null && !mDefaultValueText.isEmpty();
 
-            String defaultValue = attrs.getAttributeValue(ANDROIDNS, "defaultValue");
-            if (defaultValue == null) {
-                defaultValue = attrs.getAttributeValue(SETTINGS_NS, "defaultValue");
-            }
+            String defaultValue = attrs.getAttributeValue(AUTONS, "defaultValue");
             if (defaultValue != null && !defaultValue.isEmpty()) {
                 try {
                     mDefaultValue = Integer.parseInt(defaultValue);
@@ -124,10 +134,7 @@ public class CustomSeekBarPreference extends SliderPreference {
                 }
             }
 
-            int interval = attrs.getAttributeIntValue(SETTINGS_NS, "interval", 0);
-            if (interval == 0) {
-                interval = attrs.getAttributeIntValue(ANDROIDNS, "interval", 0);
-            }
+            int interval = attrs.getAttributeIntValue(AUTONS, "interval", 0);
             if (interval > 0) setSliderIncrement(interval);
 
             // Guard against improper slider increment
