@@ -118,6 +118,8 @@ public class ConstraintsHelper {
     }
 
     private void checkIntent() {
+        if (!mVerifyIntent) return;
+
         Intent i = mPref.getIntent();
         if (i != null) {
             if (!resolveIntent(mContext, i)) {
