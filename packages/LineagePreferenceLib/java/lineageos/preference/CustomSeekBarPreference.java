@@ -299,12 +299,6 @@ public class CustomSeekBarPreference extends SliderPreference {
         }
     }
 
-    @Override
-    public void onDependencyChanged(@NonNull Preference dependency, boolean disableDependent) {
-        super.onDependencyChanged(dependency, disableDependent);
-        notifyChanged();
-    }
-
     private void applyUserValue(int newVal, @Nullable Slider slider) {
         if (newVal == getValue()) return;
         if (!callChangeListener(newVal)) {
