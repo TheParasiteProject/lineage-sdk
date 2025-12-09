@@ -1,6 +1,6 @@
 /*
  * SPDX-FileCopyrightText: 2015 The CyanogenMod Project
- * SPDX-FileCopyrightText: 2017-2024 The LineageOS Project
+ * SPDX-FileCopyrightText: 2017-2025 The LineageOS Project
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -24,6 +24,7 @@ public class PowerMenuConstants {
     public static final String GLOBAL_ACTION_KEY_DEVICECONTROLS = "devicecontrols";
     public static final String GLOBAL_ACTION_KEY_SYSTEM_UPDATE = "system_update";
     public static final String GLOBAL_ACTION_KEY_STANDBY = "standby";
+    public static final String GLOBAL_ACTION_KEY_LOCK = "lock";
 
     /**
      * Advanced restart menu actions
@@ -50,6 +51,7 @@ public class PowerMenuConstants {
         GLOBAL_ACTION_KEY_LOGOUT,
         GLOBAL_ACTION_KEY_SYSTEM_UPDATE,
         GLOBAL_ACTION_KEY_STANDBY,
+        GLOBAL_ACTION_KEY_LOCK,
     };
 
     public static String[] getAllActions() {
